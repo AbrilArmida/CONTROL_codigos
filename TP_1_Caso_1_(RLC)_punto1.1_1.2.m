@@ -1,9 +1,10 @@
 clear all; close all; clc
 
+%TP 1 - CASO 1.1 Y 1.2 (RLC)
 
-% %PARTE 1 - AUTOVALORES Y TIEMPOS
+%PARTE 1 - AUTOVALORES Y TIEMPOS
 % %Variables
-% R = 5.6e3;
+% R = 4.7e3;
 % L = 10e-6; 
 % C = 100e-9; 
 % vin = 12;
@@ -84,14 +85,16 @@ for i=1:Kmax-1
     y(i+1) = Y(1);
     Il(i+1) = x(1);
     Vcl(i+1) = x(2);
+    
     i
 end
 
 %Graficas
 figure(1)
-subplot(3,1,1);%hold on;
+subplot(3,1,1);
 plot(t,Il,'b');title('Corriente , i_t');grid on;
-subplot(3,1,2);%hold on;
+subplot(3,1,2);
 plot(t,Vcl,'r');title('Tension Capacitor , Vc_t');grid on;
-subplot(3,1,3);%hold on;
+subplot(3,1,3);
 plot(t,u,'b');title(' Tension de Entrada, u_t');grid on;
+
