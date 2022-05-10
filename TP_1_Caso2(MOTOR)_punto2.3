@@ -1,0 +1,143 @@
+
+clc; close all; clear all
+
+%TP 1 - CASO 2.3 
+
+%Leo los datos del Excel
+datos = xlsread('/home/abrila/Documents/Facultad/Facultad/4to Año/4to - Primer Cuatrimestre/Control_2/Año 2022/Pucheta/TP1/TP_1_Caso2/Curvas_Medidas_Motor.xls');
+
+%Las columnas son Tiempo(t), velocidad angular(wr), corriente de armadura (ia)
+tiempo = datos(1:end,1);
+wr = datos(1:end,2);
+ia = datos(1:end,3);
+    
+
+%Grafico la corriente (I) y la tension en el capacitor (Vc)
+plot(tiempo,wr, 'r');grid on; title('Velocidad angular real')
+% figure
+% plot(tiempo,ia, 'm');grid on; title('Corriente de armadura real')
+
+
+%Defino un escalon para la simulacion
+ts = 0.6;                 %tiempo de simulacion
+deltat = 10^-7;           %delta t
+Va = zeros(1,ts/deltat);
+
+for i=200000:1:6000000
+    
+    Va(1,i)=12;
+    
+end
+
+%ALGORITMO DE CHEN para aproximación de FT de la forma
+%G(s)=K*(T3*s+1)/((T1*s+1)*(T2*s+1))
+
+% Tomo 3 puntos equidistantes (velocidad angular)
+ti = 0.02;
+x1 = datos(3664,2); y1 = 0.02022;
+x2 = datos(3671,2); y2 = 0.02043;
+x3 = datos(3679,2); y3 = 0.02067;
+
+% Grafico los puntos en la tension del capacitor
+hold on;
+plot(y1,x1,'o');
+plot(y2,x2,'o');
+plot(y3,x3,'o');
+
+% Valor en regimen
+K = 198.248802;
+
+% Defino 3 k correspondientes a las 3 ecuaciones para los 3 puntos tomados
+k1 = x1/K-1;
+k2 = x2/K-1; 
+k3 = x3/K-1;
+
+%Despejo de las ecuaciones alfa 1, alfa 2 y beta
+b = 4*k1^3*k3-3*k1^2*k2^2-4*k2^3+k3^2+6*k1*k2*k3; %EC 23 Chen
+alfa1 = (k1*k2+k3-sqrt(b))/(2*(k1^2+k2)); %EC 21 Chen
+alfa2 = (k1*k2+k3+sqrt(b))/(2*(k1^2+k2)); %EC 22 Chen
+beta = (2*k1^3+3*k1*k2+k3-sqrt(b))/(sqrt(b)); %EC 20 Chen
+
+%Sustituyendo EC 21 y EC 24 en EC 19 obtengo el cero y ambos polos
+T1 = -0.001/log(alfa1);
+T2 = -0.001/log(alfa2);
+T3 = beta*(T1-T2)+T1; %No hay cero, no se usa
+
+%Funcion de transferencia obtenida por Chen
+s = tf('s');
+G = K/((T1*s+1)*(T2*s+1));
+[num,den] = tfdata(G,'v')
+num = num/12;
+
+
+%Defino un escalon para la simulacion
+t = 0:deltat:(0.6-deltat);
+u = zeros(1,ts/deltat);
+
+for j=0.02/deltat:1:ts/deltat
+
+    u(1,j) = 1;
+    
+end
+
+% Graficas
+figure
+[yaprox taprox] = lsim(G,u,t); title('Funcion calculada'); plot(taprox,yaprox);
+xlabel('Tiempo');
+ylabel('wr');
+title('Respuesta de la función de transferencia aproximada con entrada de tensión');
+hold on; plot(datos(:,1),datos(:,2),'r'); title('Funcion real');
+
+
+%wr_Tl
+ti=0.1;
+x1i = 198.25-datos(6335,2); y1i = 0.10011;
+x2i = 198.25-datos(6347,2); y2i = 0.02049;
+x3i = 198.25-datos(6358,2); y3i = 0.02076;
+ 
+%ALGORITMO DE CHEN para aproximación de FT de la forma
+%G(s)=K*(T3*s+1)/((T1*s+1)*(T2*s+1))
+Ki = 153.4;
+
+k1i = x1i/Ki-1;
+k2i = x2i/Ki-1; 
+k3i = x3i/Ki-1; 
+
+bi = 4*k1i^3*k3i-3*k1i^2*k2i^2-4*k2i^3+k3i^2+6*k1i*k2i*k3i;
+alfa1i = (k1i*k2i+k3i-sqrt(bi))/(2*(k1i^2+k2i));
+alfa2i = (k1i*k2i+k3i+sqrt(bi))/(2*(k1i^2+k2i));
+betai = (2*k1i^3+3*k1i*k2i+k3i-sqrt(bi))/(sqrt(bi));
+
+T1i = -0.001/log(alfa1i);
+T2i = -0.001/log(alfa2i);
+T3i = betai*(T1i-T2i)+T1i;
+
+s = tf('s');
+Gi = Ki/((T2i*s+1));
+[numi,deni] = tfdata(Gi,'v');
+numi = numi/0.075;
+
+utl = zeros(1,ts/deltat);
+
+for j=(1000000):1:ts/deltat
+    
+    utl(1,j)=1;
+
+end 
+
+figure
+[ytaproxl ttaproxl] = lsim(-Gi,utl,t); 
+plot(ttaproxl,ytaproxl);title('Funcion aproximada');
+xlabel('Tiempo');
+ylabel('wr');
+title('Respuesta de la función de transferencia aproximada con entrada de torque');
+
+%Comparacion
+figure
+plot(t,yaprox+ytaproxl);
+hold on;
+plot(datos(:,1),datos(:,2),'r');
+legend({'Aproximación','Real'},'Location','Northeast');
+xlabel('Tiempo');
+ylabel('wr');
+title('Comparación entre aproximación y realidad');
