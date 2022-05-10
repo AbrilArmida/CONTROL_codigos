@@ -1,0 +1,54 @@
+
+clc;clear all;clc
+
+%TP 1 - PUNTO 4.1 y 4.2 - SISTEMA DE 4 VARIABLES DE ESTADO
+
+%Valores de las constantes
+m = 0.1;                    %Masa del pendulo (CASO 1)
+% m = 0.2;                   %Masa del pendulo (CASO 2)
+Fricc = 0.1;                %Friccion del carro
+long = 0.6;                 %longitud
+g = 9.8;                    %Gravedad
+M = 0.5;                    %Masa del carro
+
+%Valores y constantes del tiempo
+h = 0.0001;                 %Tiempo de simulacion 
+tiempo = (10/h);            %Pasos
+p_pp = 0;
+tita_pp = 0;
+t = 0:h:tiempo*h;
+omega(1) = 0;
+p_p = 0:h:tiempo*h;
+u = linspace(0,0,tiempo+1);
+
+%Condiciones iniciales
+%alfa(1) = -0.01; color='k';  %Angulo 
+alfa(1) = 3.01; color='b';  %Angulo 
+p(1) = 0; 
+p_p(1) = 0; 
+u(1) = 0;  
+i = 1;
+
+while(i<(tiempo+1))
+    
+%Variables del sistema no lineal
+estado = [p(i); p_p(i); alfa(i); omega(i)];
+u(i) = 0;
+
+%Sistema no lineal Integracion de Euler
+p_pp = (1/(M+m))*(u(i)-m*long*tita_pp*cos(alfa(i))+m*long*omega(i)^2*sin(alfa(i))-Fricc*p_p(i));
+tita_pp = (1/long)*(g*sin(alfa(i))-p_pp*cos(alfa(i)));
+p_p(i+1) = p_p(i)+h*p_pp;
+p(i+1) = p(i)+h*p_p(i);
+omega(i+1) = omega(i)+h*tita_pp;
+alfa(i+1) = alfa(i)+h*omega(i);
+
+i = i+1;
+end
+
+%Graficas
+figure(1);hold on;subplot(2,2,1);plot(t,omega,color);grid on; title('Velocidad angulo');hold on;
+subplot(2,2,2);plot(t,alfa,color);hold on;title('Angulo')
+subplot(2,2,3);plot(t,p,color);grid on;title('Posición del carro');hold on;
+subplot(2,2,4);plot(t,p_p,color);grid on;title('Velocidad del carro');hold on;
+
