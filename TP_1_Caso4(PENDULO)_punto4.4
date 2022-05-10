@@ -1,0 +1,82 @@
+
+
+clc;clear all;
+
+%TP 1 - PUNTO 4.4 - SISTEMA DE 4 VAIRBALES DE ESTADO 
+
+%Variables
+%m = 0.1;         %CASO 1
+m = 0.01;         %CASO 2
+Fricc = 0.1; 
+%long = 0.6;      %CASO 1
+long = 1.2;       %CASO 2
+g = 9.8;
+M = 0.5;
+
+%Tiempos
+h = 0.0001;
+tiempo = (1/h);
+p_pp = 0;
+tita_pp = 0; 
+t = 0:h:tiempo*h;
+omega = 0:h:tiempo*h; 
+alfa = 0:h:tiempo*h; 
+p = 0:h:tiempo*h;
+p_p = 0:h:tiempo*h; 
+u = linspace(0,0,tiempo+1);
+
+%Condiciones iniciales
+alfa(1) = 0.01; color = 'm';        %Angulo cercano al equilibrio
+% alfa(1) = 0.15; color = 'm';      %Angulo lejano al equilibrio
+p(1) = 0; 
+p_p(1) = 0; 
+u(1) = 0; 
+p(1) = 0; 
+i = 1;
+
+%Versión linealizada en el equilibrio inestable
+Mat_A = [0 1 0 0;0 -Fricc/M -m*g/M 0; 0 0 0 1; 0 Fricc/(long*M) g*(m+M)/(long*M) 0]
+Mat_B = [0; 1/M; 0; 1/(long*M)]
+X0 = [0 0 0 0]'; %para el equilibrio inestable
+x = [0 0 alfa(1) 0]';
+
+while(i<(tiempo+1))
+
+%Variables del sistema no lineal
+estado = [p(i); p_p(i); alfa(i); omega(i)];
+u(i) = 0;
+
+%Sistema no lineal
+p_pp = (1/(M+m))*(u(i)-m*long*tita_pp*cos(alfa(i))+m*long*omega(i)^2*sin(alfa(i))- Fricc*p_p(i));
+tita_pp = (1/long)*(g*sin(alfa(i))-p_pp*cos(alfa(i)));
+p_p(i+1) = p_p(i)+h*p_pp;
+p(i+1) = p(i)+h*p_p(i);
+omega(i+1) = omega(i)+h*tita_pp;
+alfa(i+1) = alfa(i)+h*omega(i);
+
+%Variables del sistema lineal
+pl(i) = x(1); 
+p_pl(i) = x(2);
+alfal(i) = x(3);
+omegal(i) = x(4);
+
+%Sistema lineal
+xp = Mat_A*(x-X0)+Mat_B*u(i);
+x = x+h*xp;
+
+i = i+1;
+
+end
+
+%Graficas
+pl(i) = x(1); 
+p_pl(i) = x(2);
+alfal(i) = x(3);
+omegal(i) = x(4);
+
+figure(1);hold on;
+subplot(2,2,1);plot(t,omega,color);grid on; title('Velocidad Ángulo');hold on;plot(t,omegal,'b');
+subplot(2,2,2);plot(t,alfa,color);hold on;plot(t,alfal,'b');grid on;title('Ángulo');hold on;
+subplot(2,2,3); plot(t,p,color);grid on;title('Posición carro');hold on;plot(t,pl,'b');
+subplot(2,2,4);plot(t,p_p,color);grid on;title('Velocidad carro');hold on;plot(t,p_pl,'b');
+
