@@ -1,21 +1,22 @@
 
-
 clc;clear all;
 
-%TP 1 - PUNTO 4.4 - SISTEMA DE 4 VAIRBALES DE ESTADO 
+%TP 1 - PUNTO 4.4 - SISTEMA DE 4 VARIABLES DE ESTADO 
 
 %Variables
-%m = 0.1;         %CASO 1
-m = 0.01;         %CASO 2
+m = 0.1;            %CASO 1
+% m = 0.01;         %CASO 2
 Fricc = 0.1; 
-%long = 0.6;      %CASO 1
-long = 1.2;       %CASO 2
+long = 0.6;         %CASO 1
+% long = 1.2;       %CASO 2
 g = 9.8;
 M = 0.5;
 
 %Tiempos
 h = 0.0001;
-tiempo = (1/h);
+tiempo = (1/h);       %CASO 1
+% tiempo = (2/h);     %CASO 2
+% tiempo = (3/h);     %CASO 1
 p_pp = 0;
 tita_pp = 0; 
 t = 0:h:tiempo*h;
@@ -26,7 +27,7 @@ p_p = 0:h:tiempo*h;
 u = linspace(0,0,tiempo+1);
 
 %Condiciones iniciales
-alfa(1) = 0.01; color = 'm';        %Angulo cercano al equilibrio
+alfa(1) = 0.01; color = 'g';        %Angulo cercano al equilibrio
 % alfa(1) = 0.15; color = 'm';      %Angulo lejano al equilibrio
 p(1) = 0; 
 p_p(1) = 0; 
@@ -75,8 +76,8 @@ alfal(i) = x(3);
 omegal(i) = x(4);
 
 figure(1);hold on;
-subplot(2,2,1);plot(t,omega,color);grid on; title('Velocidad Ángulo');hold on;plot(t,omegal,'b');
-subplot(2,2,2);plot(t,alfa,color);hold on;plot(t,alfal,'b');grid on;title('Ángulo');hold on;
-subplot(2,2,3); plot(t,p,color);grid on;title('Posición carro');hold on;plot(t,pl,'b');
-subplot(2,2,4);plot(t,p_p,color);grid on;title('Velocidad carro');hold on;plot(t,p_pl,'b');
+subplot(2,2,1);plot(t,omega,color);grid on; title('Velocidad Ángulo');hold on;plot(t,omegal,'r');legend({'no lineal', 'lineal'}, 'Location','northwest');
+subplot(2,2,2);plot(t,alfa,color);hold on;plot(t,alfal,'r');grid on;title('Ángulo');hold on;legend({'no lineal', 'lineal'}, 'Location','northwest');
+subplot(2,2,3); plot(t,p,color);grid on;title('Posición carro');hold on;plot(t,pl,'r');legend({'no lineal', 'lineal'}, 'Location','southwest');
+subplot(2,2,4);plot(t,p_p,color);grid on;title('Velocidad carro');hold on;plot(t,p_pl,'r');legend({'no lineal', 'lineal'}, 'Location','southwest');
 
