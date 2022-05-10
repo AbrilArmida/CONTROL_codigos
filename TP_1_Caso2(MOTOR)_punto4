@@ -1,0 +1,100 @@
+clc;clear;close all;
+
+%TP 1 - CASO 2 -PUNTO 2.4
+
+X = -[0; 0; 0; 0]; %Punto de operacion 
+t_etapa = 1e-7;
+titaRef = 1; %Valor de referencia
+tF = 0.5; %Tiempo final de simulacion
+
+%Agregado del codigo del profe
+u = 0; % se inicializa la accion de control en cero.
+u_max = 12; % Saturacion maxima y minima para asemejar el modelo a la realidad.
+u_min = -12;
+
+%Constantes del PID
+Kp = 1.5;
+Ki = 1;
+Kd = 0;
+color = 'b';
+
+%Tiempo de muestreo
+Ts = t_etapa;
+
+%Coeficientes A, B y C del PID discreto.
+A1 = ((2*Kp*Ts)+(Ki*(Ts^2))+(2*Kd))/(2*Ts);
+B1 = (-2*Kp*Ts+Ki*(Ts^2)-4*Kd)/(2*Ts);
+C1 = Kd/Ts;
+
+e = zeros(round(tF/t_etapa),1);
+for t=0:t_etapa:tF
+    
+ii = ii+1;
+k = ii+2;
+
+X = modmotor2(t_etapa, X, u); % Funcion donde se modelan las ecuaciones del motor
+e(k) = titaRef-X(4); %Calculo del error
+u = u+A1*e(k)+B1*e(k-1)+C1*e(k-2); % Accion de control PID discreto.
+
+%Saturacion
+if u>u_max
+u = u_max;
+end
+if u< u_min
+u = u_min;
+end
+
+%Variables
+x1(ii) = X(1);%Omega
+x2(ii) = X(2);%wp
+x3(ii) = X(3);%ia
+x4(ii) = X(4);%tita
+acc(ii) = u; % Accion de control
+
+end
+
+t=0:t_etapa:tF;
+
+%Graficas
+subplot(4,1,1);hold on; plot(t,x4,color);title('Salida y, \theta_t');
+subplot(4,1,2);hold on; plot(t,x3,'k');title('Corriente de salida, i_a');
+subplot(4,1,3);hold on; plot(t,x2,'k');title('Velocidad Angular, \omega_t');
+subplot(4,1,4);hold on; plot(t,acc,'b');title('Accion de control, ucc');
+xlabel('Tiempo [Seg.]');
+
+%Funcion del motor
+function [X]=modmotor2(t_etapa, xant, accion)
+
+%Constantes
+Laa = 366e-6; 
+J = 5e-9; 
+Ra = 55.6;
+B = 0;
+Ki = 6.49e-3;
+Km = 6.53e-3;
+Va = accion;
+h = 1e-7;
+TL = 2.1278125e-7;
+
+%Variables
+omega = xant(1);
+wp = xant(2);
+ia = xant(3);
+tita = xant(4);
+
+for ii=1:t_etapa/h
+    
+%Funciones
+wpp = (-wp*(Ra*J+Laa*B)-omega*(Ra*B+Ki*Km)+Va*Ki)/(J*Laa);
+iap = (-Ra*ia-Km*omega+Va)/Laa;
+wp = wp+h*wpp;
+wp = wp-((1/J)*TL);
+ia = ia+iap*h;
+omega = omega + h*wp;
+tita = tita + h*omega;
+
+end
+X = [omega,wp,ia,tita];
+end
+
+
