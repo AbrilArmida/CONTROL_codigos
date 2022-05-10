@@ -1,0 +1,40 @@
+
+
+clear all; clc; close all;
+
+%LINEALIZACION DEL PENDULO EN UN PUNTO DE EQUILIBRIO INESTABLE
+%TP 1 - PUNTO 4.3
+
+%Declaracion de variables
+syms fi fi_p fi_pp p p_p p_pp M m u long Fricc g fi_pp2 p_pp2;
+
+disp('Para el equilibrio inestable')
+
+ang_inic = 0;
+
+%Ecuaciones del sistema 
+
+    %Derivada segunda delta para pequeños angulos fi~0, sin(fi)~fi, cos(fi)~1
+    p_pp = (1/(M+m))*(u-m*long*fi_pp+m*long*fi_p^2*fi-Fricc*p_p);
+    
+    %Derivada segunda fi para pequeños angulos fi~0, sin(fi)~fi, cos(fi)~1
+    % fi_pp=(1/long)*(g*(fi)-p_pp);
+    fi_pp=solve(fi_pp==(1/long)*(g*fi-p_pp),fi_pp);
+    p_pp=subs(p_pp,'fi_pp',fi_pp);
+
+
+%Matrices del sistema
+Mat_A = [[0 1 0 0];
+[subs(subs(subs(subs(diff(p_pp, p), p,0),p_p,0),fi,ang_inic),fi_p,0),subs(subs(subs(subs(diff(p_pp, p_p), p,0),p_p,0),fi,ang_inic),fi_p,0), subs(subs(subs(subs(diff(p_pp, fi), p,0),p_p,0),fi,ang_inic),fi_p,0), subs(subs(subs(subs(diff(p_pp, fi_p), p,0),p_p,0),fi,ang_inic),fi_p,0)];
+[0 0 0 1];
+[subs(subs(subs(subs(diff(fi_pp, p), p,0),p_p,0),fi,ang_inic),fi_p,0),subs(subs(subs(subs(diff(fi_pp, p_p), p,0),p_p,0),fi,ang_inic),fi_p,0),subs(subs(subs(subs(diff(fi_pp, fi), p,0),p_p,0),fi,ang_inic),fi_p,0),subs(subs(subs(subs(diff(fi_pp, fi_p), p,0),p_p,0),fi,ang_inic),fi_p,0)]];
+
+Mat_B=[0;
+subs(subs(subs(subs(diff(p_pp, u), p,0),p_p,0),fi,ang_inic),fi_p,0);
+0;
+subs(subs(subs(subs(diff(fi_pp, u), p,0),p_p,0),fi,ang_inic),fi_p,0)];
+
+disp('Matriz A')
+pretty(simplify(Mat_A))
+disp('Matriz B')
+pretty(simplify(Mat_B))
